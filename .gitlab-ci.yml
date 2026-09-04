@@ -1,0 +1,133 @@
+stages:
+  - analysis
+  - test
+  - build
+  - release
+
+default:
+  image: golang:1.25-alpine
+  before_script:
+    - apk add --no-cache bash git make gcc musl-dev
+
+# ─── Analysis ───────────────────────────────────────────────
+
+fmt-check:
+  stage: analysis
+  script:
+    - make fmt-check
+
+vet:
+  stage: analysis
+  script:
+    - make vet
+
+staticcheck:
+  stage: analysis
+  # The Makefile owns the pinned staticcheck version so CI and local runs
+  # cannot drift apart.
+  script:
+    - make staticcheck
+
+# ─── Test ───────────────────────────────────────────────────
+
+coverage:
+  stage: test
+  script:
+    - make coverage
+  coverage: '/Coverage:\s+(\d+\.\d+)%/'
+  artifacts:
+    paths:
+      - coverage.out
+    expire_in: 7 days
+
+protocol:
+  stage: test
+  before_script:
+    - apk add --no-cache bash git make gcc musl-dev curl unzip
+    - wget -qO /tmp/terraform.zip https://releases.hashicorp.com/terraform/1.9.8/terraform_1.9.8_linux_amd64.zip
+    - unzip -q /tmp/terraform.zip -d /usr/local/bin
+  script:
+    - make protocol
+    - make docs
+
+# ─── Build ──────────────────────────────────────────────────
+
+cross-build:
+  stage: build
+  before_script:
+    - apk add --no-cache bash make zip
+  script:
+    - make release VERSION="${CI_COMMIT_TAG:-${CI_COMMIT_SHORT_SHA}}"
+  artifacts:
+    paths:
+      - dist/provider/
+    expire_in: 30 days
+
+# ─── Release ────────────────────────────────────────────────
+
+release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  before_script: []
+  needs:
+    - job: cross-build
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/'
+  script:
+    - test -n "${CI_JOB_TOKEN}"
+    - test -f "dist/provider/${CI_COMMIT_TAG}/SHA256SUMS"
+    - sha256sum -c "dist/provider/${CI_COMMIT_TAG}/SHA256SUMS"
+    - tar -czf "provider-${CI_COMMIT_TAG}.tar.gz" -C "dist/provider/${CI_COMMIT_TAG}" .
+  release:
+    tag_name: '$CI_COMMIT_TAG'
+    name: 'Kestrix provider $CI_COMMIT_TAG'
+    description: 'Terraform/OpenTofu provider release. SHA256SUMS and provenance are included in the job artifacts.'
+    assets:
+      links:
+        - name: 'Provider artifacts'
+          url: '${CI_JOB_URL}/artifacts/download'
+  artifacts:
+    paths:
+      - provider-${CI_COMMIT_TAG}.tar.gz
+      - dist/provider/${CI_COMMIT_TAG}/
+    expire_in: 1 year
+
+sign:
+  stage: release
+  image: ghcr.io/sigstore/cosign:v2.4.1
+  before_script: []
+  needs:
+    - job: cross-build
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/ && $COSIGN_PRIVATE_KEY'
+  script:
+    - test -n "${COSIGN_PRIVATE_KEY}"
+    - cd "dist/provider/${CI_COMMIT_TAG}"
+    - sha256sum -c SHA256SUMS
+    - cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --output-signature SHA256SUMS.sig --output-certificate SHA256SUMS.pem SHA256SUMS
+    - cosign verify-blob --key env://COSIGN_PUBLIC_KEY --signature SHA256SUMS.sig --certificate SHA256SUMS.pem SHA256SUMS
+  artifacts:
+    paths:
+      - dist/provider/${CI_COMMIT_TAG}/SHA256SUMS*
+    expire_in: 1 year
+
+registry-publish:
+  stage: release
+  image: alpine:3.20
+  before_script: []
+  needs:
+    - job: release
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/ && $KESTRIX_REGISTRY_PUBLISH == "1"'
+      when: manual
+  script:
+    - test -n "${KESTRIX_REGISTRY_UPLOAD_URL}"
+    - test -n "${KESTRIX_REGISTRY_TOKEN}"
+    - apk add --no-cache curl
+    - >-
+      curl --fail-with-body --header "JOB-TOKEN: ${KESTRIX_REGISTRY_TOKEN}"
+      --upload-file "provider-${CI_COMMIT_TAG}.tar.gz"
+      "${KESTRIX_REGISTRY_UPLOAD_URL}/${CI_COMMIT_TAG}/provider-${CI_COMMIT_TAG}.tar.gz"
