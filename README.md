@@ -103,3 +103,7 @@ archives, `SHA256SUMS`, and provenance metadata under `dist/provider/`. CI signs
 those exact artifacts with protected credentials, publishes the GitLab release,
 and only then runs the protected/manual registry publication job, so a failed
 publication is retried without rebuilding.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
