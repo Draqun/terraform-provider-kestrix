@@ -8,6 +8,10 @@
 [![Sponsor: GitHub](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/draqun)
 [![Donate: PayPal](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white)](https://paypal.me/damiandraqungiebas)
 
+> [!NOTE]
+> **Primary Repository & Development:** Active development, issues, and merge requests are hosted on [GitLab (kestrix/terraform-provider-kestrix)](https://gitlab.com/kestrix/terraform-provider-kestrix).  
+> The [GitHub repository (Draqun/terraform-provider-kestrix)](https://github.com/Draqun/terraform-provider-kestrix) is an automated push mirror used for releases and registry publishing.
+
 Manages remote [Kestrix](https://gitlab.com/kestrix/kestrix) project
 registrations. It works with both Terraform and OpenTofu, because both speak the
 Terraform provider protocol.
