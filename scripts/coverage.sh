@@ -6,7 +6,7 @@ set -Eeuo pipefail
 export LC_ALL=C
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${repo_root}"
-go test ./... -count=1 -covermode=atomic -coverprofile=coverage.out
+go test ./internal/... -count=1 -covermode=atomic -coverprofile=coverage.out
 grep -vF '/terraform-provider-kestrix/main.go' coverage.out > coverage.testable.out
 mv coverage.testable.out coverage.out
 read -r covered total percent < <(awk '

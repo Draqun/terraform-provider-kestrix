@@ -18,7 +18,7 @@ GOPATH      ?= $(CURDIR)/.gopath
 GOBIN       ?= $(GOPATH)/bin
 GOENV       := GOCACHE=$(GOCACHE) GOMODCACHE=$(GOMODCACHE) GOPATH=$(GOPATH) GOBIN=$(GOBIN) PATH=$(GOBIN):$(PATH)
 
-.PHONY: help build test coverage protocol docs acceptance release fmt fmt-check vet staticcheck lint quality clean
+.PHONY: help build test coverage protocol docs acceptance dist release-artifacts release release-push release-dry-run release-notes fmt fmt-check vet staticcheck lint quality clean
 
 ## help: Show this help message
 help:
@@ -50,9 +50,31 @@ docs:
 acceptance: build
 	bash scripts/acceptance.sh
 
-## release: Build reproducible archives and checksums for every platform
-release:
+## dist: Build reproducible archives and checksums for every platform
+dist:
 	bash scripts/release.sh $(VERSION)
+
+## release-artifacts: Alias for dist
+release-artifacts: dist
+
+## release: Automate version validation, changelog cut, commit and git tag
+release:
+	@test -n "$(VERSION)" || (echo "VERSION is not set. Usage: make release VERSION=0.1.1 or make release VERSION=patch" && exit 1)
+	python3 scripts/release.py $(VERSION)
+
+## release-push: Automate release and push commits and tags to remote (triggers CI release)
+release-push:
+	@test -n "$(VERSION)" || (echo "VERSION is not set. Usage: make release-push VERSION=0.1.1 or make release-push VERSION=patch" && exit 1)
+	python3 scripts/release.py $(VERSION) --push
+
+## release-dry-run: Dry-run release process without making changes
+release-dry-run:
+	@test -n "$(VERSION)" || (echo "VERSION is not set. Usage: make release-dry-run VERSION=0.1.1" && exit 1)
+	python3 scripts/release.py $(VERSION) --dry-run
+
+## release-notes: Generate or extract release notes for VERSION from CHANGELOG.md
+release-notes:
+	python3 scripts/generate_release_notes.py $(if $(VERSION),--version $(VERSION),)
 
 ## fmt: Format Go sources and Terraform examples
 fmt:
