@@ -6,15 +6,29 @@ Terraform provider protocol.
 
 ## Installation and configuration
 
-Published releases use the address `registry.terraform.io/kestrix/kestrix`.
+Published releases are available on the Terraform and OpenTofu registries:
+- **Terraform Registry:** [`registry.terraform.io/Draqun/kestrix`](https://registry.terraform.io/providers/Draqun/kestrix/latest)
+- **OpenTofu Registry:** [`registry.opentofu.org/Draqun/kestrix`](https://search.opentofu.org/provider/Draqun/kestrix)
+
+```hcl
+terraform {
+  required_providers {
+    kestrix = {
+      source  = "Draqun/kestrix"
+      version = "~> 0.1.0"
+    }
+  }
+}
+```
+
 For local development, build `bin/terraform-provider-kestrix` with `make build`
 and point the CLI at it with a development override:
 
 ```hcl
 provider_installation {
   dev_overrides {
-    "registry.terraform.io/kestrix/kestrix" = "/path/to/this/repo/bin"
-    "registry.opentofu.org/kestrix/kestrix" = "/path/to/this/repo/bin"
+    "registry.terraform.io/Draqun/kestrix" = "/path/to/this/repo/bin"
+    "registry.opentofu.org/Draqun/kestrix" = "/path/to/this/repo/bin"
   }
   direct {}
 }
