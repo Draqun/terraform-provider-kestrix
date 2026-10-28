@@ -1,5 +1,13 @@
 # Kestrix Terraform/OpenTofu provider
 
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Go Version](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)](https://golang.org)
+[![Terraform Registry](https://img.shields.io/badge/Terraform%20Registry-v0.1.0-844FBA?logo=terraform&logoColor=white)](https://registry.terraform.io/providers/Draqun/kestrix/latest)
+[![OpenTofu Registry](https://img.shields.io/badge/OpenTofu%20Registry-v0.1.0-FFDA18?logo=opentofu&logoColor=black)](https://search.opentofu.org/provider/Draqun/kestrix)
+[![Release status](https://github.com/Draqun/terraform-provider-kestrix/actions/workflows/release.yml/badge.svg)](https://github.com/Draqun/terraform-provider-kestrix/actions)
+[![Sponsor: GitHub](https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/draqun)
+[![Donate: PayPal](https://img.shields.io/badge/Donate-PayPal-00457C?logo=paypal&logoColor=white)](https://paypal.me/damiandraqungiebas)
+
 Manages remote [Kestrix](https://gitlab.com/kestrix/kestrix) project
 registrations. It works with both Terraform and OpenTofu, because both speak the
 Terraform provider protocol.
@@ -117,6 +125,13 @@ archives, `SHA256SUMS`, and provenance metadata under `dist/provider/`. CI signs
 those exact artifacts with protected credentials, publishes the GitLab release,
 and only then runs the protected/manual registry publication job, so a failed
 publication is retried without rebuilding.
+
+## Funding & Support
+
+If you find this provider useful and want to support its ongoing development:
+
+- 💖 **GitHub Sponsors:** [sponsor @Draqun on GitHub](https://github.com/sponsors/draqun)
+- ☕ **PayPal Donation:** [paypal.me/damiandraqungiebas](https://paypal.me/damiandraqungiebas)
 
 ## License
 
